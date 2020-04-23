@@ -27,21 +27,26 @@ public class OmdbService {
         return movies;
     }
 
-    List<Movie> saveMovie(String id) {
-        OmdbMovie omdbMovie = omdbGateway.getBy(id);
-        Movie movie = new Movie();
-        movie.setName(omdbMovie.getTitle());
-        movie.setDescription(omdbMovie.getPlot());
-        movie.setYear(omdbMovie.getYear());
-        movie.setPictureURL(omdbMovie.getPoster());
+    List<Movie> saveMovie(String id, OmdbMoviesList list) {
+        List<OmdbMovie> omdbMovies = list.getOmdbMovies();
+        for (OmdbMovie omdbMovie : omdbMovies) {
+            if (id.equals(omdbMovie.getId())) {
+                Movie movie = new Movie();
+                movie.setName(omdbMovie.getTitle());
+                movie.setDescription(omdbMovie.getPlot());
+                movie.setYear(omdbMovie.getYear());
+                movie.setPictureURL(omdbMovie.getPoster());
 
-        String categories = omdbMovie.getGenre();
-        String[] genres = categories.split(", ");
-        for (String genre : genres) {
-            Optional<Category> optional = categoryRepository.findByName(genre);
-            optional.ifPresent(movie::addCategory);
+                String categories = omdbMovie.getGenre();
+                String[] genres = categories.split(", ");
+                for (String genre : genres) {
+                    Optional<Category> optional = categoryRepository.findByName(genre);
+                    optional.ifPresent(movie::addCategory);
+                }
+                movieRepository.save(movie);
+                break;
+            }
         }
-        movieRepository.save(movie);
         return movieRepository.findByOrderByNameAsc();
     }
 }
