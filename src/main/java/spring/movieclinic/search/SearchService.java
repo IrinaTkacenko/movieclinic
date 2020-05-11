@@ -31,38 +31,20 @@ class SearchService {
 
     private List<Movie> advancedSearch(Movie movie) {
 
-        List<Movie> listOfFound = new ArrayList<>();
+        Set<String> set = new LinkedHashSet<>();
 
-        listOfFound.addAll(checkQueryIfNotValid(movie.getName()) ?
-                Collections.emptyList() : movieRepository.findByNameContains(movie.getName().trim()));
-        listOfFound.addAll(movie.getYear() == null ?
-                Collections.emptyList() : movieRepository.findByYear(movie.getYear()));
-        listOfFound.addAll(movie.getCategories() == null ?
-                Collections.emptyList() :movieRepository.findByCategoriesIn(movie.getCategories()));
-        listOfFound.addAll(checkQueryIfNotValid(movie.getDescription()) ?
-                Collections.emptyList() : movieRepository.findByDescriptionContains(movie.getDescription().trim()));
+        movie.getCategories().forEach(category -> set.add(category.getName()));
 
-        Map<Movie, Integer> result = mapOfFound(listOfFound).entrySet()
-                .stream()
-                .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
-                .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        Map.Entry::getValue,
-                        (oldValue, newValue) -> oldValue, LinkedHashMap::new));
-
-        return new ArrayList<>(result.keySet());
-    }
-
-    private Map<Movie, Integer> mapOfFound(List<Movie> listOfFound) {
-
-        Map<Movie, Integer> mapOfFound = new LinkedHashMap<>();
-        if(!listOfFound.isEmpty()) {
-            for (Movie mov:listOfFound) {
-                int numberOfFieldsCorrespondsTo = 0;
-                mapOfFound.put(mov, !mapOfFound.containsKey(mov) ? ++numberOfFieldsCorrespondsTo : mapOfFound.get(mov) + 1);
-            }
-        }
-        return mapOfFound;
+        return checkQueryIfNotValid(movie.getName()) &&
+                movie.getYear() == null &&
+                movie.getCategories().isEmpty() &&
+                checkQueryIfNotValid(movie.getDescription()) ?
+                Collections.emptyList() :
+                new ArrayList<>(movieRepository.findByNameAndYearAndCategoriesAndDescription(
+                        movie.getName(),
+                        movie.getYear(),
+                        set,
+                        movie.getDescription()));
     }
 
     private Boolean checkQueryIfNotValid(String query) {
