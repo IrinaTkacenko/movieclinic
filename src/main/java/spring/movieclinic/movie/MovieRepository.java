@@ -12,14 +12,16 @@ public interface MovieRepository extends CrudRepository<Movie, Integer> {
 
     List<Movie> findByNameContains(String name);
 
-    @Query(value = "SELECT * FROM movies WHERE name LIKE %:name% and " +
-            "(:year is null or year = :year) and " +
-            "(:categories is null or id IN (SELECT movie_id FROM movie_category WHERE category_id IN " +
-            "(SELECT id FROM categories WHERE name IN :categories))) and " +
-            "description LIKE %:description%", nativeQuery = true)
-    List<Movie> findByNameAndYearAndCategoriesAndDescription(@Param("name") String name,
+
+    @Query(value = "SELECT DISTINCT movie.* FROM Movies movie " +
+            "INNER JOIN movie_category m_c " +
+            "ON (movie.id = m_c.movie_id AND (:categories is null or m_c.category_id IN :categories))" +
+            "WHERE movie.name LIKE %:name% and " +
+            "(:year is null or movie.year = :year) and " +
+            "movie.description LIKE %:description%", nativeQuery = true)
+    List<Movie> findByNameAndYearAndCategoriesAndDescription(@Param("categories") Set<Integer> categories,
+                                                             @Param("name") String name,
                                                              @Param("year") Integer year,
-                                                             @Param("categories") Set<String> categories,
                                                              @Param("description") String description);
 
     List<Movie> findByOrderByNameAsc();

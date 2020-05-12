@@ -55,4 +55,12 @@ public class Movie extends ItemEntity {
         categories.remove(category);
     }
 
+    @Override
+    public String toString() {
+        return "movie: name = " + this.getName() +
+                ", year = " + this.getYear() +
+                ", categories = " + this.getCategories() +
+                ", description = " + this.getDescription();
+    }
+
 }

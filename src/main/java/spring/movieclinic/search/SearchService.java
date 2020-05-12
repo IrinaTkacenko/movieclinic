@@ -2,6 +2,7 @@ package spring.movieclinic.search;
 
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import spring.movieclinic.category.Category;
 import spring.movieclinic.movie.Movie;
 import spring.movieclinic.movie.MovieRepository;
 
@@ -30,21 +31,20 @@ class SearchService {
     }
 
     private List<Movie> advancedSearch(Movie movie) {
-
-        Set<String> set = new LinkedHashSet<>();
-
-        movie.getCategories().forEach(category -> set.add(category.getName()));
-
         return checkQueryIfNotValid(movie.getName()) &&
                 movie.getYear() == null &&
                 movie.getCategories().isEmpty() &&
                 checkQueryIfNotValid(movie.getDescription()) ?
                 Collections.emptyList() :
                 new ArrayList<>(movieRepository.findByNameAndYearAndCategoriesAndDescription(
+                        movie.getCategories().stream()
+                                .map(Category::getId)
+                                .collect(Collectors.toSet()),
                         movie.getName(),
                         movie.getYear(),
-                        set,
                         movie.getDescription()));
+
+
     }
 
     private Boolean checkQueryIfNotValid(String query) {
